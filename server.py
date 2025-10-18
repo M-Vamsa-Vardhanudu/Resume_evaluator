@@ -16,6 +16,8 @@ import requests
 from bs4 import BeautifulSoup
 import os, tempfile, json
 from email_reader import get_email_summary, fetch_unread_emails
+from dotenv import load_dotenv
+load_dotenv()
 
 # ---------------- Globals ----------------
 llm = ChatGroq(
@@ -83,6 +85,7 @@ app.add_middleware(
         "http://localhost:5500",
         "http://127.0.0.1:5500",
         "http://localhost:8080",
+        "http://localhost:5173",
         "null"  # Allow file:// protocol during development
     ],
     allow_credentials=True,

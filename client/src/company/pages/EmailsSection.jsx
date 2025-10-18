@@ -1,152 +1,50 @@
 import React, { useState } from 'react';
 import StatCard from '../components/StatCard';
-import Model from '../../shared/components/Model';
+import Modal from '../../shared/components/Model';
 import '../styles/EmailsSection.css';
+
+const API_URL = 'http://127.0.0.1:8000'; // Your backend URL
 
 const EmailsSection = () => {
   const [emails, setEmails] = useState([]);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const mockEmails = [
-    {
-      id: 1,
-      from: 'john.doe@example.com',
-      name: 'John Doe',
-      subject: 'Application for Senior Developer Position',
-      preview: 'Dear Hiring Manager, I am writing to express my interest in the Senior Developer position...',
-      date: '2024-01-15T10:30:00',
-      hasAttachment: true,
-      isRead: false,
-      body: `Dear Hiring Manager,
-
-I am writing to express my interest in the Senior Developer position at your company. With over 6 years of experience in full-stack development, I believe I would be a great fit for your team.
-
-My expertise includes:
-- React, Node.js, and TypeScript
-- AWS and cloud architecture
-- Agile development methodologies
-- Team leadership and mentoring
-
-I have attached my resume for your review. I would welcome the opportunity to discuss how my skills and experience align with your needs.
-
-Thank you for your consideration.
-
-Best regards,
-John Doe`
-    },
-    {
-      id: 2,
-      from: 'sarah.smith@email.com',
-      name: 'Sarah Smith',
-      subject: 'Frontend Developer Application',
-      preview: 'Hello, I am excited to apply for the Frontend Developer role. I have 4 years of experience...',
-      date: '2024-01-14T15:45:00',
-      hasAttachment: true,
-      isRead: false,
-      body: `Hello,
-
-I am excited to apply for the Frontend Developer role. I have 4 years of experience building modern web applications using React, Vue.js, and modern CSS frameworks.
-
-Key achievements:
-- Led the redesign of a major e-commerce platform
-- Improved page load times by 40%
-- Mentored junior developers
-
-Please find my resume attached. Looking forward to hearing from you!
-
-Best regards,
-Sarah Smith`
-    },
-    {
-      id: 3,
-      from: 'michael.chen@tech.com',
-      name: 'Michael Chen',
-      subject: 'Backend Engineer Application',
-      preview: 'Thank you for considering my application. I have extensive experience with Python and Django...',
-      date: '2024-01-13T09:20:00',
-      hasAttachment: true,
-      isRead: true,
-      body: `Thank you for considering my application.
-
-I have extensive experience with Python and Django, having built scalable APIs for various enterprise clients. My background includes:
-
-- 5 years in backend development
-- Microservices architecture
-- Database optimization
-- CI/CD implementation
-
-Resume attached for your review.
-
-Best regards,
-Michael Chen`
-    },
-    {
-      id: 4,
-      from: 'emma.wilson@dev.com',
-      name: 'Emma Wilson',
-      subject: 'Full Stack Position Inquiry',
-      preview: 'I came across your job posting and I am very interested in the Full Stack position...',
-      date: '2024-01-12T14:10:00',
-      hasAttachment: true,
-      isRead: false,
-      body: `Hello,
-
-I came across your job posting and I am very interested in the Full Stack position. I have 5 years of experience working with both frontend and backend technologies.
-
-Technical Skills:
-- Frontend: React, Angular, Vue.js
-- Backend: Node.js, Python, Java
-- Database: MongoDB, PostgreSQL
-- DevOps: Docker, Kubernetes, AWS
-
-My resume is attached. I look forward to discussing this opportunity with you.
-
-Thank you,
-Emma Wilson`
-    },
-    {
-      id: 5,
-      from: 'david.brown@mail.com',
-      name: 'David Brown',
-      subject: 'DevOps Engineer Application',
-      preview: 'I am writing to apply for the DevOps Engineer position. I have 7 years of experience...',
-      date: '2024-01-11T11:30:00',
-      hasAttachment: true,
-      isRead: true,
-      body: `Dear Hiring Team,
-
-I am writing to apply for the DevOps Engineer position. I have 7 years of experience in automation, cloud infrastructure, and CI/CD pipelines.
-
-Core Competencies:
-- AWS, Azure, GCP
-- Kubernetes, Docker
-- Terraform, Ansible
-- Jenkins, GitLab CI
-
-Please see my attached resume for more details.
-
-Sincerely,
-David Brown`
-    }
-  ];
-
-  const handleFetchEmails = () => {
+  // Fetch emails from backend API instead of using mock data
+  const handleFetchEmails = async () => {
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setEmails(mockEmails);
-      setIsLoading(false);
-    }, 1500);
+    try {
+      const response = await fetch(`${API_URL}/emails/unread`);
+      const data = await response.json();
+      // Map backend data to UI shape (if needed)
+      if (data.success && data.data && Array.isArray(data.data.emails)) {
+        // Assign unique id for React key, use index if no id
+        const emailsWithId = data.data.emails.map((e, idx) => ({
+          id: idx + 1,
+          from: e.sender,
+          name: e.sender.split('<')[0].trim() || e.sender,
+          subject: e.subject,
+          preview: e.body?.slice(0, 80) + '…',
+          date: e.date,
+          hasAttachment: (e.attachments || []).length > 0,
+          isRead: false,
+          body: e.full_body || e.body || '',
+          attachments: e.attachments || [],
+        }));
+        setEmails(emailsWithId);
+      } else {
+        setEmails([]);
+      }
+    } catch (error) {
+      // If error, fallback to empty and maybe show toast
+      setEmails([]);
+    }
+    setIsLoading(false);
   };
 
   const handleEmailClick = (email) => {
     setSelectedEmail(email);
-    // Mark as read
-    setEmails(emails.map(e => 
-      e.id === email.id ? { ...e, isRead: true } : e
-    ));
+    setEmails(emails.map(e => e.id === email.id ? { ...e, isRead: true } : e));
   };
 
   const handleCloseModal = () => {
@@ -161,10 +59,10 @@ David Brown`
   const resumeCount = emails.filter(e => e.hasAttachment).length;
 
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h ago`;
     if (diffInHours < 48) return 'Yesterday';
@@ -264,13 +162,15 @@ David Brown`
                 </div>
               </div>
               <div className="email-detail-date">
-                {new Date(selectedEmail.date).toLocaleString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
+                {selectedEmail.date && (
+                  new Date(selectedEmail.date).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                )}
               </div>
             </div>
 
@@ -284,19 +184,23 @@ David Brown`
               ))}
             </div>
 
-            {selectedEmail.hasAttachment && (
+            {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
               <div className="email-attachments">
                 <h4><i className="fas fa-paperclip"></i> Attachments</h4>
-                <div className="attachment-item">
-                  <i className="fas fa-file-pdf"></i>
-                  <div>
-                    <span className="attachment-name">Resume_{selectedEmail.name.replace(' ', '_')}.pdf</span>
-                    <span className="attachment-size">245 KB</span>
+                {selectedEmail.attachments.map((att, i) => (
+                  <div className="attachment-item" key={i}>
+                    <i className="fas fa-file-pdf"></i>
+                    <div>
+                      <span className="attachment-name">{att.filename}</span>
+                      {/* Optionally, show a download link: */}
+                      {att.filepath && (
+                        <a href={att.filepath} download className="btn-download" target="_blank" rel="noopener noreferrer">
+                          <i className="fas fa-download"></i>
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <button className="btn-download">
-                    <i className="fas fa-download"></i>
-                  </button>
-                </div>
+                ))}
               </div>
             )}
 
@@ -322,4 +226,3 @@ David Brown`
 };
 
 export default EmailsSection;
-

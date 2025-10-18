@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+requests
+beautifulsoup4
+langchain
+langchain-community
+langchain-huggingface
+langchain-groq
+chromadb
+aiofiles
+python-dotenv
+httpx
