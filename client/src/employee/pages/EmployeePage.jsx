@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/EmployeePage.css';
 
+const API_URL = 'http://127.0.0.1:8000';
+
 const EmployeePage = () => {
   const [messages, setMessages] = useState([
     {
@@ -18,6 +20,7 @@ I can help you with:
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -30,27 +33,90 @@ I can help you with:
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
+  // Check backend connection on mount
+  useEffect(() => {
+    checkBackendConnection();
+  }, []);
+
+  const checkBackendConnection = async () => {
+    try {
+      console.log('🔍 [EmployeePage] Checking backend connection...');
+      const response = await fetch(`${API_URL}/health`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors'
+      });
+      
+      const data = await response.json();
+      console.log('✅ [EmployeePage] Backend health check:', data);
+      
+      if (!data.vectorstore_loaded) {
+        addMessage('⚠️ Warning: Knowledge base not fully loaded. Responses may be limited.', 'bot');
+      } else {
+        addMessage('✅ Connected to AI backend successfully!', 'bot');
+      }
+    } catch (error) {
+      console.error('❌ [EmployeePage] Backend connection failed:', error);
+      addMessage('⚠️ Warning: Cannot connect to the AI backend. Please ensure the server is running at http://127.0.0.1:8000', 'bot');
+    }
+  };
+
+  const addMessage = (content, type) => {
+    setMessages(prev => [...prev, { type, content }]);
+  };
+
+  const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    const userMessage = {
-      type: 'user',
-      content: inputMessage
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage = inputMessage.trim();
+    addMessage(userMessage, 'user');
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const botResponse = {
-        type: 'bot',
-        content: `Thank you for your message! This is a demo response. In a real application, this would connect to an AI service to provide personalized resume feedback and career advice.`
-      };
-      setMessages(prev => [...prev, botResponse]);
+    try {
+      console.log('📤 [EmployeePage] Sending message to API:', userMessage);
+      const botResponse = await getBotResponseFromAPI(userMessage);
+      console.log('✅ [EmployeePage] Received response from API');
       setIsTyping(false);
-    }, 1500);
+      addMessage(botResponse, 'bot');
+    } catch (error) {
+      console.error('❌ [EmployeePage] Error getting bot response:', error);
+      setIsTyping(false);
+      addMessage('⚠️ Sorry, I cannot reach the AI backend. Please ensure the server is running.', 'bot');
+    }
+  };
+
+  const getBotResponseFromAPI = async (userMessage) => {
+    try {
+      const response = await fetch(`${API_URL}/ask`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          query: userMessage, 
+          session_id: sessionId 
+        }),
+        mode: 'cors'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.session_id) {
+        setSessionId(data.session_id);
+      }
+      
+      return data.answer || 'Sorry, I could not generate a response.';
+    } catch (error) {
+      console.error('Failed to get response from API:', error);
+      throw error;
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -60,33 +126,44 @@ I can help you with:
     }
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const fileMessage = {
-        type: 'user',
-        content: `📎 Uploaded: ${file.name}`
-      };
-      setMessages(prev => [...prev, fileMessage]);
+    if (!file) return;
+
+    addMessage(`📎 Uploaded: ${file.name}`, 'user');
+    setIsTyping(true);
+
+    // Analyze the resume
+    setTimeout(async () => {
+      addMessage(`Great! I've received your resume "${file.name}". Let me analyze it for you... ⚙️`, 'bot');
       
-      setIsTyping(true);
-      setTimeout(() => {
-        const botResponse = {
-          type: 'bot',
-          content: `Great! I've received your resume "${file.name}". In a production environment, I would analyze your resume and provide detailed feedback on:
-
-- Skills assessment
-- Experience relevance
-- Formatting and presentation
-- ATS compatibility
-- Improvement suggestions
-
-This is a demo version. Connect to an AI service for actual analysis.`
-        };
-        setMessages(prev => [...prev, botResponse]);
+      const analysisPrompt = `I have uploaded a resume for a ${getAssumedRole(file.name)}. 
+Please provide a comprehensive analysis including:
+1. Key skills that should be highlighted
+2. Experience level recommendations
+3. Specific suggestions for improvement
+4. Industry best practices for this role`;
+      
+      try {
+        const analysis = await getBotResponseFromAPI(analysisPrompt);
         setIsTyping(false);
-      }, 2000);
-    }
+        addMessage(`📊 Resume Analysis Complete!\n\n${analysis}`, 'bot');
+      } catch (error) {
+        console.error('❌ Resume analysis failed:', error);
+        setIsTyping(false);
+        addMessage('⚠️ Sorry, I encountered an error analyzing your resume.', 'bot');
+      }
+    }, 1000);
+  };
+
+  const getAssumedRole = (filename) => {
+    const lower = filename.toLowerCase();
+    if (lower.includes('data') && lower.includes('scientist')) return 'Data Scientist';
+    if (lower.includes('data') && lower.includes('engineer')) return 'Data Engineer';
+    if (lower.includes('data') && lower.includes('analyst')) return 'Data Analyst';
+    if (lower.includes('software') || lower.includes('developer')) return 'Software Engineer';
+    if (lower.includes('ux') || lower.includes('designer')) return 'UX Designer';
+    return 'Software Engineer';
   };
 
   const handleLogout = () => {
@@ -178,8 +255,13 @@ This is a demo version. Connect to an AI service for actual analysis.`
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
+            disabled={isTyping}
           />
-          <button className="send-btn" onClick={handleSendMessage}>
+          <button 
+            className="send-btn" 
+            onClick={handleSendMessage}
+            disabled={isTyping || !inputMessage.trim()}
+          >
             <i className="fas fa-paper-plane"></i>
           </button>
         </div>
@@ -189,4 +271,3 @@ This is a demo version. Connect to an AI service for actual analysis.`
 };
 
 export default EmployeePage;
-

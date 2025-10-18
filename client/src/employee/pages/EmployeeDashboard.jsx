@@ -5,6 +5,297 @@ import '../styles/EmployeeDashboard.css';
 
 const API_URL = 'http://127.0.0.1:8000'; // Backend API
 
+const ChatAssistant = () => {
+  const [messages, setMessages] = useState([
+    {
+      sender: 'bot',
+      text: "Hello! 👋 I'm your AI Resume Assistant powered by industry knowledge.\n\nI can help you with:\n• Resume evaluation and improvement tips\n• Role-specific skills recommendations (Data Science, Software Engineering, UX Design, etc.)\n• Career guidance based on industry best practices\n• Upload your resume or ask me anything!"
+    }
+  ]);
+  const [messageInput, setMessageInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const chatMessagesRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // Scroll to bottom on new message
+  useEffect(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  }, [messages, isTyping]);
+
+  // Check backend connection on mount with extensive logging
+  useEffect(() => {
+    (async () => {
+      console.log('🔍 [ChatAssistant] Component mounted, checking backend connection...');
+      console.log('🌐 [ChatAssistant] API URL:', API_URL);
+      
+      try {
+        console.log('📡 [ChatAssistant] Attempting to fetch /health endpoint...');
+        const response = await fetch(`${API_URL}/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          mode: 'cors'
+        });
+        
+        console.log('✅ [ChatAssistant] Response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        const data = await response.json();
+        console.log('📦 [ChatAssistant] Health check data:', data);
+        
+        if (!data.vectorstore_loaded) {
+          console.warn('⚠️ [ChatAssistant] Vectorstore not fully loaded');
+          addMessage('⚠️ Warning: Knowledge base not fully loaded. Responses may be limited.', 'bot');
+        } else {
+          console.log('✅ [ChatAssistant] Backend fully operational!');
+          addMessage('✅ Connected to AI backend successfully!', 'bot');
+        }
+      } catch (error) {
+        console.error('❌ [ChatAssistant] Backend connection failed:', error);
+        console.error('❌ [ChatAssistant] Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        
+        addMessage('⚠️ Warning: Cannot connect to the AI backend. Please ensure the server is running at http://127.0.0.1:8000', 'bot');
+        addMessage('Run: python server.py', 'bot');
+      }
+    })();
+    // eslint-disable-next-line
+  }, []);
+
+  function addMessage(text, sender) {
+    console.log(`💬 [ChatAssistant] Adding message - Sender: ${sender}, Text: ${text.substring(0, 50)}...`);
+    setMessages(prev => [...prev, { text, sender }]);
+  }
+
+  async function sendMessage() {
+    const message = messageInput.trim();
+    if (!message) {
+      console.log('⚠️ [ChatAssistant] Empty message, not sending');
+      return;
+    }
+    
+    console.log('📤 [ChatAssistant] Sending user message:', message);
+    addMessage(message, 'user');
+    setMessageInput('');
+    setIsTyping(true);
+    
+    try {
+      console.log('🤖 [ChatAssistant] Requesting bot response...');
+      const botResponse = await getBotResponseFromAPI(message);
+      console.log('✅ [ChatAssistant] Bot response received:', botResponse.substring(0, 100) + '...');
+      setIsTyping(false);
+      addMessage(botResponse, 'bot');
+    } catch (error) {
+      console.error('❌ [ChatAssistant] Error getting bot response:', error);
+      setIsTyping(false);
+      addMessage('⚠️ Sorry, I cannot reach the AI backend. Please ensure:\n1. The server is running (python server.py)\n2. The server is accessible at http://127.0.0.1:8000\n3. CORS is properly configured', 'bot');
+    }
+  }
+
+  async function getBotResponseFromAPI(userMessage) {
+    console.log('🔄 [API] Calling /ask endpoint...');
+    console.log('🔄 [API] Request payload:', { 
+      query: userMessage, 
+      session_id: sessionId 
+    });
+    
+    try {
+      const response = await fetch(`${API_URL}/ask`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Accept': 'application/json' 
+        },
+        body: JSON.stringify({ 
+          query: userMessage, 
+          session_id: sessionId 
+        }),
+        mode: 'cors'
+      });
+      
+      console.log('📡 [API] Response status:', response.status, response.statusText);
+      console.log('📡 [API] Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [API] HTTP error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ [API] Response data:', data);
+      
+      if (data.session_id) {
+        console.log('🔑 [API] Session ID updated:', data.session_id);
+        setSessionId(data.session_id);
+      }
+      
+      return data.answer || 'Sorry, I could not generate a response.';
+    } catch (error) {
+      console.error('❌ [API] Request failed:', error);
+      throw error;
+    }
+  }
+
+  function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (file) {
+      console.log('📁 [ChatAssistant] File uploaded:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+      setUploadedFile(file);
+      processFile(file);
+    }
+  }
+
+  function processFile(file) {
+    console.log('⚙️ [ChatAssistant] Processing file:', file.name);
+    addMessage(`📄 Uploaded: ${file.name}`, 'user');
+    setIsTyping(true);
+    
+    setTimeout(async () => {
+      setIsTyping(false);
+      addMessage(`Great! I've received your resume "${file.name}". Let me analyze it for you... ⚙️`, 'bot');
+      
+      const analysisPrompt = `I have uploaded a resume for a ${getAssumedRole(file.name)}. 
+Please provide a comprehensive analysis including:
+1. Key skills that should be highlighted
+2. Experience level recommendations
+3. Specific suggestions for improvement
+4. Industry best practices for this role`;
+      
+      console.log('📊 [ChatAssistant] Sending analysis prompt...');
+      
+      try {
+        setIsTyping(true);
+        const analysis = await getBotResponseFromAPI(analysisPrompt);
+        setIsTyping(false);
+        addMessage(`📊 Resume Analysis Complete!\n\n${analysis}`, 'bot');
+      } catch (error) {
+        console.error('❌ [ChatAssistant] Resume analysis failed:', error);
+        setIsTyping(false);
+        addMessage('⚠️ Sorry, I encountered an error analyzing your resume. Please ensure the backend is running and try asking specific questions about resume improvement.', 'bot');
+      }
+    }, 1000);
+  }
+
+  function getAssumedRole(filename) {
+    const lower = filename.toLowerCase();
+    if (lower.includes('data') && lower.includes('scientist')) return 'Data Scientist';
+    if (lower.includes('data') && lower.includes('engineer')) return 'Data Engineer';
+    if (lower.includes('data') && lower.includes('analyst')) return 'Data Analyst';
+    if (lower.includes('software') || lower.includes('developer')) return 'Software Engineer';
+    if (lower.includes('ux') || lower.includes('designer')) return 'UX Designer';
+    return 'Software Engineer';
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    console.log('🎯 [ChatAssistant] File dropped');
+    if (e.dataTransfer.files.length > 0) {
+      setUploadedFile(e.dataTransfer.files[0]);
+      processFile(e.dataTransfer.files[0]);
+    }
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+  }
+
+  return (
+    <div className="chat-container">
+      <header className="chat-header">
+        <div className="header-left">
+          <i className="fas fa-robot"></i>
+          <div>
+            <h2>Resume Assistant</h2>
+            <span className="status-indicator">Online</span>
+          </div>
+        </div>
+      </header>
+      <div className="chat-messages" id="chatMessages" ref={chatMessagesRef}>
+        {messages.map((msg, i) => (
+          <div key={i} className={`message ${msg.sender}-message`}>
+            <div className="message-avatar">
+              <i className={`fas fa-${msg.sender === 'user' ? 'user' : 'robot'}`}></i>
+            </div>
+            <div className="message-content">
+              {msg.sender === 'bot'
+                ? <span dangerouslySetInnerHTML={{ __html: msg.text.replace(/\n/g, '<br/>') }} />
+                : <span>{msg.text}</span>
+              }
+            </div>
+          </div>
+        ))}
+        {isTyping && (
+          <div className="message bot-message typing-indicator">
+            <div className="message-avatar">
+              <i className="fas fa-robot"></i>
+            </div>
+            <div className="message-content">
+              <div className="typing-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="chat-input-area">
+        <div
+          className="upload-zone"
+          id="uploadZone"
+          onClick={() => fileInputRef.current.click()}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          style={{ cursor: 'pointer' }}
+        >
+          <input
+            type="file"
+            id="fileInput"
+            ref={fileInputRef}
+            accept=".pdf,.docx,.txt"
+            hidden
+            onChange={handleFileUpload}
+          />
+          <label htmlFor="fileInput" className="upload-label">
+            <i className="fas fa-cloud-upload-alt"></i>
+            <span>Click or drag to upload resume</span>
+          </label>
+        </div>
+        <div className="input-wrapper-chat">
+          <input
+            type="text"
+            id="messageInput"
+            placeholder="Type your message..."
+            value={messageInput}
+            onChange={e => setMessageInput(e.target.value)}
+            onKeyPress={e => { if (e.key === 'Enter') sendMessage(); }}
+            disabled={isTyping}
+          />
+          <button className="send-btn" id="sendBtn" onClick={sendMessage} disabled={isTyping || !messageInput.trim()}>
+            <i className="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 const EmployeeDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [skillFilter, setSkillFilter] = useState('All Skills');
@@ -14,16 +305,11 @@ const EmployeeDashboard = () => {
   const [sortBy, setSortBy] = useState('score');
   const [allCandidates, setAllCandidates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // For resume upload
   const fileInputRef = useRef(null);
 
-  // Fetch candidates from backend (optional: replace with your endpoint)
   useEffect(() => {
-    // You can fetch from API here if needed
-    // For now, using static data:
+    console.log('📊 [EmployeeDashboard] Component mounted');
     setAllCandidates([
-      // ... (same sample candidates as before)
       {
         id: 1,
         name: 'Sarah Johnson',
@@ -37,7 +323,6 @@ const EmployeeDashboard = () => {
         location: 'San Francisco, CA',
         appliedDate: '2024-01-15'
       },
-      // ... Add the rest of your sample candidates here ...
     ]);
   }, []);
 
@@ -93,7 +378,6 @@ const EmployeeDashboard = () => {
     handleCloseModal();
   };
 
-  // File upload logic (simulate backend call)
   const handleUploadClick = () => {
     fileInputRef.current.click();
   };
@@ -102,7 +386,6 @@ const EmployeeDashboard = () => {
     const file = e.target.files[0];
     if (!file) return;
     alert(`Uploaded: ${file.name}\n\n(You can connect this to backend API for actual processing)`);
-    // Reset input
     e.target.value = '';
   };
 
