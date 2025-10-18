@@ -1,0 +1,131 @@
+.company-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.company-main {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8fafc;
+}
+
+.page-header {
+  background: white;
+  padding: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-header h1 {
+  color: #1e293b;
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  padding: 0 2rem 2rem;
+}
+
+.chart-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card h3 {
+  margin-bottom: 1.5rem;
+  color: #1e293b;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.section-content {
+  padding: 2rem;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-input,
+.filter-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: border-color 0.3s;
+}
+
+.search-input {
+  min-width: 250px;
+}
+
+.search-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+.candidates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.upload-zone {
+  margin: 2rem;
+  padding: 4rem 2rem;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  text-align: center;
+  background: white;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.upload-zone:hover {
+  border-color: #4f46e5;
+  background: #f8fafc;
+}
+
+.upload-zone i {
+  font-size: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.upload-zone h3 {
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.upload-zone p {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+

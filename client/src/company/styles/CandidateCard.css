@@ -1,0 +1,124 @@
+.candidate-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(40,47,60,0.08);
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.18s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.candidate-card:hover {
+  box-shadow: 0 4px 16px rgba(40,47,60,0.13);
+  transform: translateY(-2px) scale(1.01);
+}
+
+.candidate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.candidate-info h4 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.18rem;
+  font-weight: 700;
+}
+
+.candidate-info p {
+  margin: 0;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.score-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.08rem;
+  background: #f8fafc;
+  color: #222;
+  min-width: 56px;
+  text-align: center;
+}
+
+.score-badge.high {
+  background: rgba(16,185,129,0.13);
+  color: #10b981;
+}
+.score-badge.medium {
+  background: rgba(245,158,11,0.13);
+  color: #f59e0b;
+}
+.score-badge.low {
+  background: rgba(239,68,68,0.13);
+  color: #ef4444;
+}
+
+.skills-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-tag {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 7px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.candidate-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.experience-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #475569;
+  font-size: 0.95rem;
+  background: #f1f5f9;
+  padding: 0.28rem 0.7rem;
+  border-radius: 6px;
+}
+
+.experience-badge i {
+  color: #4f46e5;
+  font-size: 1.08rem;
+}
+
+.status-badge {
+  padding: 0.32rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.status-badge.shortlisted {
+  background: rgba(16,185,129,0.13);
+  color: #10b981;
+}
+.status-badge.pending {
+  background: rgba(245,158,11,0.13);
+  color: #f59e0b;
+}
+.status-badge.reviewed {
+  background: rgba(79,70,229,0.13);
+  color: #4f46e5;
+}
+.status-badge.rejected {
+  background: rgba(239,68,68,0.13);
+  color: #ef4444;
+}
