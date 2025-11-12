@@ -1,3 +1,4 @@
+import React from 'react';
 import '../styles/CandidateCard.css';
 
 const CandidateCard = ({ candidate, onClick }) => {

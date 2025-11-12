@@ -1,3 +1,4 @@
+import React from 'react';
 import '../styles/StatCard.css';
 
 const StatCard = ({ icon, title, value, change, color }) => {

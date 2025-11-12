@@ -3,6 +3,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import StatCard from '../components/StatCard';
 import CandidateCard from '../components/CandidateCard';
 import Modal from '../../shared/components/Model';
+import SplitText from '../../shared/components/ui/splitText';
+import TiltWrapper from '../../shared/components/ui/TiltWrapper';
 import '../styles/CompanyDashboard.css';
 
 const initialCandidates = [
@@ -124,7 +126,6 @@ const CompanyDashboard = () => {
     }, 2000);
   };
 
-  // Drag & drop logic
   const handleDrop = (e) => {
     e.preventDefault();
     handleBulkUpload(e.dataTransfer.files);
@@ -134,7 +135,7 @@ const CompanyDashboard = () => {
   return (
     <div className="dashboard-section">
       <header className="page-header">
-        <h1>Candidate Evaluation Dashboard</h1>
+        <SplitText text="Candidate Evaluation Dashboard" />
         <div className="header-actions">
           <button className="btn btn-secondary">
             <i className="fas fa-filter"></i>
@@ -156,34 +157,48 @@ const CompanyDashboard = () => {
       </header>
 
       <div className="stats-grid">
-        <StatCard
-          icon="fas fa-file-alt"
-          title="Total Resumes"
-          value="248"
-          change="+12% this week"
-          color="blue"
-        />
-        <StatCard
-          icon="fas fa-check-circle"
-          title="Shortlisted"
-          value="42"
-          change="+8% this week"
-          color="green"
-        />
-        <StatCard
-          icon="fas fa-clock"
-          title="Pending Review"
-          value="89"
-          change="No change"
-          color="orange"
-        />
-        <StatCard
-          icon="fas fa-chart-line"
-          title="Avg. Match Score"
-          value="78%"
-          change="+5% this week"
-          color="purple"
-        />
+        <TiltWrapper>
+          <StatCard
+            icon="fas fa-file-alt"
+            title="Total Resumes"
+            value="248"
+            change="+12% this week"
+            color="blue"
+          />
+        </TiltWrapper>
+
+  {/* Card 2 */}
+        <TiltWrapper>
+          <StatCard
+            icon="fas fa-check-circle"
+            title="Shortlisted"
+            value="42"
+            change="+8% this week"
+            color="green"
+          />
+        </TiltWrapper>
+
+  {/* Card 3 */}
+        <TiltWrapper>
+          <StatCard
+            icon="fas fa-clock"
+            title="Pending Review"
+            value="89"
+            change="No change"
+            color="orange"
+          />
+        </TiltWrapper>
+
+  {/* Card 4 */}
+        <TiltWrapper>
+          <StatCard
+            icon="fas fa-chart-line"
+            title="Avg. Match Score"
+            value="78%"
+            change="+5% this week"
+            color="purple"
+          />
+        </TiltWrapper>       
       </div>
 
       <div className="charts-section">

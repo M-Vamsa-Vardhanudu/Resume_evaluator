@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import '../styles/Model.css';
+import '../styles/Model.css'; // Ensure this path is correct
 
 const Modal = ({ children, onClose }) => {
   useEffect(() => {
@@ -13,6 +13,7 @@ const Modal = ({ children, onClose }) => {
   }, []);
 
   const handleBackdropClick = (e) => {
+    // Only close if the overlay itself (not content) is clicked
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -25,20 +26,23 @@ const Modal = ({ children, onClose }) => {
   };
 
   useEffect(() => {
+    // Add escape key listener
     document.addEventListener('keydown', handleEscape);
+    // Cleanup listener
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, []);
+  }, [onClose]); // Add onClose to dependencies
 
   return (
+    // The overlay div handles background dimming and click-outside-to-close
     <div className="modal-overlay" onClick={handleBackdropClick}>
+      {/* The container is now mostly transparent and sized by its content */}
       <div className="modal-container">
-        <button className="modal-close" onClick={onClose}>
-          <i className="fas fa-times"></i>
-        </button>
+        {/* REMOVED: The <button className="modal-close"...> used to be here */}
+        {/* The body div just passes children through */}
         <div className="modal-body">
-          {children}
+          {children} {/* This will render your <div className="email-detail-modal">...</div> */}
         </div>
       </div>
     </div>
@@ -46,4 +50,3 @@ const Modal = ({ children, onClose }) => {
 };
 
 export default Modal;
-

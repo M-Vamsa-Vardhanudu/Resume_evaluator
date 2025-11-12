@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import CandidateCard from '../../company/components/CandidateCard';
 import Modal from '../../shared/components/Model';
 import '../styles/EmployeeDashboard.css';
+import SplitText from '../../shared/components/ui/splitText';
 
 const API_URL = 'http://127.0.0.1:8000'; // Backend API
 
@@ -392,7 +393,7 @@ const EmployeeDashboard = () => {
   return (
     <div className="candidates-section">
       <header className="page-header">
-        <h1>All Candidates</h1>
+        <SplitText text="All Candidates"/>
         <div className="header-actions">
           <button className="btn btn-secondary">
             <i className="fas fa-download"></i>

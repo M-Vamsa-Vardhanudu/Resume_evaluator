@@ -1,77 +1,88 @@
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 1px 8px rgba(40,47,60,0.08);
-  padding: 1.5rem 2rem;
-  min-width: 220px;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.stat-card:hover {
-  box-shadow: 0 4px 16px rgba(40,47,60,0.13);
-  transform: translateY(-2px) scale(1.02);
+  gap: 1.5rem; /* Increased gap for more space */
+  background: #ffffff;
+  border-radius: 16px; /* Slightly larger radius */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  
+  /* --- INCREASED SIZE --- */
+  padding: 1.75rem 2rem; /* Increased vertical padding */
+  min-width: 260px; /* Increased minimum width */
 }
 
 .stat-icon {
-  width: 52px;
-  height: 52px;
+  /* --- INCREASED SIZE --- */
+  width: 60px; /* Larger icon circle */
+  height: 60px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  margin-right: 0.5rem;
-  box-shadow: 0 2px 8px rgba(40,47,60,0.07);
+  font-size: 2.25rem; /* Larger icon */
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
 .stat-icon.blue {
-  background: #4f46e5;
-  color: #fff;
+  background: #e0f2fe;
+  color: #2196f3;
 }
 
 .stat-icon.orange {
-  background: #f59e0b;
-  color: #fff;
+  background: #fff3e0;
+  color: #ff9800;
 }
 
 .stat-icon.green {
-  background: #10b981;
-  color: #fff;
+  background: #e8f5e9;
+  color: #4caf50;
 }
 
 .stat-icon.purple {
-  background: #a78bfa;
-  color: #fff;
+  background: #f3e5f5;
+  color: #9c27b0;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem; /* Slightly more gap */
 }
 
 .stat-info h3 {
   margin: 0;
-  font-size: 1.2rem;
-  color: #1e293b;
-  font-weight: 700;
+  /* --- INCREASED SIZE --- */
+  font-size: 1rem; /* Larger title (16px) */
+  color: #616161;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 
 .stat-number {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0.2rem 0;
+  /* --- INCREASED SIZE --- */
+  font-size: 2.25rem; /* Larger number (36px) */
+  font-weight: 700;
+  color: #212121;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .stat-change {
-  font-size: 0.95rem;
-  color: #ef4444;
+  /* --- INCREASED SIZE --- */
+  font-size: 0.875rem; /* Larger change badge (14px) */
   font-weight: 500;
-  background: #fbeaea;
-  padding: 0.2rem 0.7rem;
-  border-radius: 6px;
-  margin-top: 0.2rem;
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 0.2rem 0.6rem; /* Adjusted padding */
+  border-radius: 99px;
   display: inline-block;
+  align-self: flex-start;
+  margin-top: 0.2rem; /* Add a little space */
 }
 
 .stat-change.positive {
-  color: #10b981;
-  background: #e6fbf4;
+  color: #388e3c;
+  background: #e8f5e9;
 }

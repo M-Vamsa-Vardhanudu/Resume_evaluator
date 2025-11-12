@@ -1,0 +1,23 @@
+.split-text {
+    font-size: 2rem;
+    text-align: center;
+    line-height: 1.2;
+    overflow: hidden;
+    display: inline-block;
+    white-space: normal;
+    max-width: 800px;
+    font-weight: bold;
+}
+
+.split-text span {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s ease-out;
+    will-change: transform, opacity;
+}
+
+.split-text.visible span {
+    opacity: 1;
+    transform: translateY(0);
+}

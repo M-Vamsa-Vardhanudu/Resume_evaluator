@@ -1,0 +1,15 @@
+canvas {
+    /* Make it a fixed overlay on top of everything */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    
+    /* Make it float on top of all other page content */
+    z-index: 9999; 
+    
+    /* CRITICAL: This makes all clicks "go through" the canvas */
+    /* so you can still click buttons on your pages */
+    pointer-events: none; 
+}
